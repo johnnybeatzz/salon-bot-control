@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, MessageCircle, Clock, AlertTriangle } from "lucide-react";
@@ -82,13 +81,13 @@ const DashboardHome = () => {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome to your Salon Bot control panel</p>
+        <p className="text-muted-foreground">Welcome to our Salon Bot control panel</p>
       </div>
       
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <Card key={index}>
+          <Card className="mb-8" key={index}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -140,8 +139,8 @@ const DashboardHome = () => {
           <CardContent>
             <div className="space-y-4">
               {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start space-x-3">
-                  <div className="bg-salon-100 text-salon-700 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
+                <div key={activity.id} className="flex items-start space-x-4">
+                  <div className="bg-salon-100 text-salon-700 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-salon-300 shadow-sm">
                     {activity.user.charAt(0)}
                   </div>
                   <div className="space-y-0.5">

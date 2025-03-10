@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -104,7 +103,11 @@ const Customers = () => {
   
   const handleBotToggle = (id, enabled) => {
     setCustomers(customers.map(customer => 
-      customer.id === id ? { ...customer, botEnabled: enabled } : customer
+      customer.id === id ? { 
+        ...customer, 
+        botEnabled: enabled,
+        status: enabled ? 'active' : 'inactive'
+      } : customer
     ));
     
     toast.success(`Bot ${enabled ? 'enabled' : 'disabled'} for ${customers.find(c => c.id === id).name}`);
@@ -127,7 +130,7 @@ const Customers = () => {
         <CardHeader className="pb-3">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search customers..."
                 className="pl-8"
@@ -180,13 +183,13 @@ const Customers = () => {
                       filteredCustomers.map((customer) => (
                         <tr key={customer.id} className="bg-white border-b hover:bg-muted/50">
                           <td className="px-6 py-4">
-                            <div className="flex items-center space-x-3">
-                              <Avatar className="h-8 w-8 border-2 border-salon-200">
+                            <div className="flex items-center">
+                              <Avatar className="h-9 w-9 border-2 border-salon-200 flex-shrink-0" style={{ marginRight: '8px' }}>
                                 <div className="bg-salon-100 text-salon-800 flex items-center justify-center h-full w-full font-medium">
                                   {customer.avatar}
                                 </div>
                               </Avatar>
-                              <div>
+                              <div style={{ marginLeft: '16px', paddingLeft: '4px' }}>
                                 <p className="font-medium">{customer.name}</p>
                                 <Badge variant={customer.status === 'active' ? 'outline' : 'secondary'} className="mt-1">
                                   {customer.status === 'active' ? 'Active' : 'Inactive'}

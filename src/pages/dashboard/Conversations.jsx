@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,17 +13,27 @@ import { Avatar } from "@/components/ui/avatar";
 const mockConversations = [
   {
     id: 1,
-    user: "Jessica Smith",
+    user: "Jessica mith",
     avatar: "JS", 
     lastMessage: "Thank you for the information about the hair treatments.",
     time: "10:25 AM",
     unread: true,
     messages: [
-      { id: 1, content: "Hi, do you offer hair coloring services?", isUser: true, time: "09:45 AM" },
-      { id: 2, content: "Yes, we offer a wide range of hair coloring services. Would you like to know about our options?", isUser: false, time: "09:47 AM" },
-      { id: 3, content: "What are your prices for highlights?", isUser: true, time: "09:52 AM" },
-      { id: 4, content: "Our highlights start at $95 for partial and $145 for full. The final price depends on hair length and desired effect.", isUser: false, time: "09:55 AM" },
-      { id: 5, content: "Thank you for the information about the hair treatments.", isUser: true, time: "10:25 AM" },
+      { id: 1, content: "Hi, do you offer hair coloring services? I'm looking for a complete makeover and would like to know all my options.", isUser: true, time: "09:45 AM" },
+      { id: 2, content: "Yes, we offer a wide range of hair coloring services including balayage, ombre, highlights, and full color transformations. Would you like to know more about each option?", isUser: false, time: "09:47 AM" },
+      { id: 3, content: "What are your prices for highlights? I have medium-length hair and I'm looking for something that would last through the summer months.", isUser: true, time: "09:52 AM" },
+      { id: 4, content: "Our highlights start at $95 for partial and $145 for full. The final price depends on hair length and desired effect. For medium-length hair, we typically recommend a full highlight package which would cost around $160-$180 depending on the technique used.", isUser: false, time: "09:55 AM" },
+      { id: 5, content: "That sounds reasonable. What about maintenance? How often would I need to come in for touch-ups?", isUser: true, time: "10:00 AM" },
+      { id: 6, content: "For highlights, we recommend touch-ups every 6-8 weeks to maintain the look. We also offer color-protecting treatments that can help extend the life of your color.", isUser: false, time: "10:02 AM" },
+      { id: 7, content: "Do you use ammonia-free products? I have sensitive skin and want to make sure I won't have any reactions.", isUser: true, time: "10:05 AM" },
+      { id: 8, content: "Yes, we use only high-quality, ammonia-free products that are gentle on both hair and scalp. All our colorists are trained in sensitive skin techniques and we always do a patch test before any color service.", isUser: false, time: "10:07 AM" },
+      { id: 9, content: "That's great to hear. What's your availability like for next week? I'd like to book a consultation and possibly schedule my appointment.", isUser: true, time: "10:10 AM" },
+      { id: 10, content: "We have several openings next week. Would you prefer a morning or afternoon appointment? I can check our schedule and find the best time for you.", isUser: false, time: "10:12 AM" },
+      { id: 11, content: "Morning would be best. I'm free any day except Wednesday. What times do you have available?", isUser: true, time: "10:15 AM" },
+      { id: 12, content: "Let me check... We have 9:30 AM on Monday, 10:00 AM on Tuesday, or 11:00 AM on Thursday. Which of these works best for you?", isUser: false, time: "10:17 AM" },
+      { id: 13, content: "Tuesday at 10:00 AM works perfectly. Can you send me a confirmation and let me know what I should bring to the consultation?", isUser: true, time: "10:20 AM" },
+      { id: 14, content: "Absolutely! I'll send you a confirmation email with all the details. For the consultation, it would be helpful if you could bring any photos of styles you like and information about any previous color treatments you've had.", isUser: false, time: "10:22 AM" },
+      { id: 15, content: "Thank you for the information about the hair treatments. I'm looking forward to my appointment!", isUser: true, time: "10:25 AM" }
     ]
   },
   {
@@ -99,6 +108,19 @@ const Conversations = () => {
     setNewMessage("");
   };
 
+  // Add navigation functions
+  const navigateToNext = () => {
+    const currentIndex = filteredConversations.findIndex(conv => conv.id === selectedConversation.id);
+    const nextIndex = (currentIndex + 1) % filteredConversations.length;
+    setSelectedConversation(filteredConversations[nextIndex]);
+  };
+
+  const navigateToPrevious = () => {
+    const currentIndex = filteredConversations.findIndex(conv => conv.id === selectedConversation.id);
+    const previousIndex = (currentIndex - 1 + filteredConversations.length) % filteredConversations.length;
+    setSelectedConversation(filteredConversations[previousIndex]);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -115,7 +137,7 @@ const Conversations = () => {
               <Badge variant="outline">{mockConversations.length}</Badge>
             </div>
             <div className="relative mt-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search conversations..."
                 className="pl-8"
@@ -139,13 +161,13 @@ const Conversations = () => {
                       className={`p-4 cursor-pointer hover:bg-muted ${selectedConversation.id === conversation.id ? 'bg-muted' : ''}`}
                       onClick={() => setSelectedConversation(conversation)}
                     >
-                      <div className="flex items-start space-x-3">
+                      <div className="flex items-start">
                         <Avatar className="h-10 w-10 border-2 border-salon-200">
                           <div className="bg-salon-100 text-salon-800 flex items-center justify-center h-full w-full font-medium">
                             {conversation.avatar}
                           </div>
                         </Avatar>
-                        <div className="flex-1 space-y-1">
+                        <div className="flex-1" style={{ marginLeft: '20px' }}>
                           <div className="flex items-center justify-between">
                             <p className="font-medium text-sm">{conversation.user}</p>
                             <p className="text-xs text-muted-foreground">{conversation.time}</p>
@@ -182,29 +204,29 @@ const Conversations = () => {
           {selectedConversation ? (
             <>
               <CardHeader className="border-b p-4 py-3 flex flex-row items-center justify-between">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center">
                   <Avatar className="h-8 w-8 border-2 border-salon-200">
                     <div className="bg-salon-100 text-salon-800 flex items-center justify-center h-full w-full font-medium">
                       {selectedConversation.avatar}
                     </div>
                   </Avatar>
-                  <div>
+                  <div style={{ marginLeft: '20px' }}>
                     <CardTitle className="text-base">{selectedConversation.user}</CardTitle>
                     <p className="text-xs text-muted-foreground">Last active: {selectedConversation.time}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" onClick={navigateToPrevious}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" onClick={navigateToNext}>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="p-0 flex flex-col h-[calc(100vh-280px)]">
-                <ScrollArea className="flex-1 p-4">
-                  <div className="space-y-4">
+              <CardContent className="p-0 flex flex-col h-[400px]">
+                <ScrollArea className="flex-1 p-4 overflow-y-auto" style={{ maxHeight: "320px" }}>
+                  <div className="space-y-4 pb-2">
                     {selectedConversation.messages.map((message) => (
                       <div 
                         key={message.id} 
@@ -226,7 +248,8 @@ const Conversations = () => {
                     ))}
                   </div>
                 </ScrollArea>
-                <div className="p-4 border-t">
+                
+                <div className="p-4 border-t mt-auto">
                   <div className="flex space-x-2">
                     <Button variant="outline" size="icon" className="rounded-full">
                       <PaperclipIcon className="h-4 w-4" />

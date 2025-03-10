@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -8,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { toast } from "sonner";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -57,7 +57,7 @@ const Dashboard = () => {
         <Sidebar>
           <SidebarContent>
             <div className="p-4">
-              <div className="flex items-center gap-3 mb-8">
+              <div style={{gap:"10px"}} className="flex items-center gap-8 mb-8 mr-4">
                 <Avatar className="border-2 border-sidebar-primary">
                   <div className="bg-salon-100 flex items-center justify-center text-salon-800 font-semibold h-full w-full">
                     SB
@@ -94,6 +94,10 @@ const Dashboard = () => {
             
             <div className="mt-auto p-4">
               <Separator className="my-4 bg-sidebar-border/30" />
+              <div className="flex items-center gap-2 mb-4">
+                <ThemeToggle />
+                <span className="text-sidebar-foreground/80 text-xs">Toggle Theme</span>
+              </div>
               <Button variant="outline" className="w-full bg-transparent border-sidebar-border/30 text-sidebar-foreground hover:bg-sidebar-border/30 hover:text-sidebar-foreground" onClick={handleLogout}>
                 <LogOut size={18} className="mr-2" />
                 Logout
