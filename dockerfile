@@ -22,6 +22,9 @@ FROM nginx:alpine
 # Copy the built app from the builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
+# Add Nginx configuration for SPA routing
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 # Expose port 80
 EXPOSE 80
 
