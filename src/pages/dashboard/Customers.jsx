@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,91 +9,29 @@ import { Search, Filter, MoreHorizontal, UserPlus } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-
-// Mock data
-const mockCustomers = [
-  {
-    id: 1,
-    name: "Jessica Smith",
-    avatar: "JS",
-    email: "jessica.smith@example.com",
-    phone: "+1 (555) 123-4567",
-    conversations: 8,
-    lastActive: "Today, 10:25 AM",
-    botEnabled: true,
-    status: "active",
-  },
-  {
-    id: 2,
-    name: "Michael Johnson",
-    avatar: "MJ",
-    email: "michael.johnson@example.com",
-    phone: "+1 (555) 234-5678",
-    conversations: 5,
-    lastActive: "Yesterday, 2:30 PM",
-    botEnabled: true,
-    status: "active",
-  },
-  {
-    id: 3,
-    name: "Emma Davis",
-    avatar: "ED",
-    email: "emma.davis@example.com",
-    phone: "+1 (555) 345-6789",
-    conversations: 12,
-    lastActive: "Yesterday, 4:15 PM",
-    botEnabled: false,
-    status: "inactive",
-  },
-  {
-    id: 4,
-    name: "Alex Rodriguez",
-    avatar: "AR",
-    email: "alex.rodriguez@example.com",
-    phone: "+1 (555) 456-7890",
-    conversations: 3,
-    lastActive: "2 days ago",
-    botEnabled: true,
-    status: "active",
-  },
-  {
-    id: 5,
-    name: "Olivia Wilson",
-    avatar: "OW",
-    email: "olivia.wilson@example.com",
-    phone: "+1 (555) 567-8901",
-    conversations: 7,
-    lastActive: "3 days ago",
-    botEnabled: true,
-    status: "active",
-  },
-  {
-    id: 6,
-    name: "Daniel Miller",
-    avatar: "DM",
-    email: "daniel.miller@example.com",
-    phone: "+1 (555) 678-9012",
-    conversations: 0,
-    lastActive: "1 week ago",
-    botEnabled: false,
-    status: "inactive",
-  },
-  {
-    id: 7,
-    name: "Sophia Brown",
-    avatar: "SB",
-    email: "sophia.brown@example.com",
-    phone: "+1 (555) 789-0123",
-    conversations: 2,
-    lastActive: "2 weeks ago",
-    botEnabled: true,
-    status: "active",
-  }
-];
+import { fetchCustomers, updateCustomerBotStatus, deleteCustomer } from "@/lib/api";
+import { BlinkBlur } from "react-loading-indicators"
 
 const Customers = () => {
-  const [customers, setCustomers] = useState(mockCustomers);
+  const [customers, setCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    loadCustomers();
+  }, []);
+
+  const loadCustomers = async () => {
+    try {
+      const data = await fetchCustomers();
+      setCustomers(data);
+    } catch (error) {
+      toast.error("Failed to load customers");
+      console.error("Error loading customers:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const filteredCustomers = customers.filter((customer) =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -102,13 +39,45 @@ const Customers = () => {
     customer.phone.includes(searchTerm)
   );
   
-  const handleBotToggle = (id, enabled) => {
-    setCustomers(customers.map(customer => 
-      customer.id === id ? { ...customer, botEnabled: enabled } : customer
-    ));
-    
-    toast.success(`Bot ${enabled ? 'enabled' : 'disabled'} for ${customers.find(c => c.id === id).name}`);
+  const handleBotToggle = async (id, enabled) => {
+    try {
+      setCustomers(customers.map(customer => 
+        customer.userId === id ? { 
+          ...customer, 
+          botEnabled: enabled,
+          status: enabled ? 'active' : 'inactive'
+        } : customer
+      ));
+      await updateCustomerBotStatus(id, enabled);
+      
+      toast.success(`Bot ${enabled ? 'enabled' : 'disabled'} for ${customers.find(c => c.userId === id).name}`);
+    } catch (error) {
+      toast.error("Failed to update bot status");
+      console.error("Error updating bot status:", error);
+    }
   };
+
+  const handleDeleteCustomer = async (id) => {
+    try {
+      await deleteCustomer(id);
+      setCustomers(customers.filter(customer => customer.userId !== id));
+      toast.success('Customer deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete customer');
+      console.error('Error deleting customer:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <BlinkBlur color='#2f4ff5' size="medium" text="" textColor="" />
+          <p className="text-muted-foreground">Loading conversations...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -127,7 +96,7 @@ const Customers = () => {
         <CardHeader className="pb-3">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search customers..."
                 className="pl-8"
@@ -165,10 +134,10 @@ const Customers = () => {
             <TabsContent value="all" className="m-0">
               <div className="relative overflow-x-auto">
                 <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-muted-foreground uppercase bg-muted">
+                  <thead className="text-xs text-muted-foreground uppercase bg-muted px-4" style={{paddingLeft:"20px"}}>
                     <tr>
                       <th scope="col" className="px-6 py-3">Customer</th>
-                      <th scope="col" className="px-6 py-3">Contact</th>
+                      <th scope="col" className="px-6 py-3">Username</th>
                       <th scope="col" className="px-6 py-3">Conversations</th>
                       <th scope="col" className="px-6 py-3">Last Active</th>
                       <th scope="col" className="px-6 py-3">Bot</th>
@@ -180,13 +149,13 @@ const Customers = () => {
                       filteredCustomers.map((customer) => (
                         <tr key={customer.id} className="bg-white border-b hover:bg-muted/50">
                           <td className="px-6 py-4">
-                            <div className="flex items-center space-x-3">
-                              <Avatar className="h-8 w-8 border-2 border-salon-200">
+                            <div className="flex items-center">
+                              <Avatar className="h-9 w-9 border-2 border-salon-200 flex-shrink-0 ml-1" style={{ marginRight: '8px', marginLeft:'20px'}}>
                                 <div className="bg-salon-100 text-salon-800 flex items-center justify-center h-full w-full font-medium">
                                   {customer.avatar}
                                 </div>
                               </Avatar>
-                              <div>
+                              <div style={{ marginLeft: '16px', paddingLeft: '4px' }}>
                                 <p className="font-medium">{customer.name}</p>
                                 <Badge variant={customer.status === 'active' ? 'outline' : 'secondary'} className="mt-1">
                                   {customer.status === 'active' ? 'Active' : 'Inactive'}
@@ -196,7 +165,7 @@ const Customers = () => {
                           </td>
                           <td className="px-6 py-4">
                             <div className="space-y-1">
-                              <p className="text-xs">{customer.email}</p>
+                              <p className="text-xs">{customer.username}</p>
                               <p className="text-xs text-muted-foreground">{customer.phone}</p>
                             </div>
                           </td>
@@ -210,7 +179,7 @@ const Customers = () => {
                             <div className="flex items-center space-x-2">
                               <Switch 
                                 checked={customer.botEnabled} 
-                                onCheckedChange={(checked) => handleBotToggle(customer.id, checked)}
+                                onCheckedChange={(checked) => handleBotToggle(customer.userId, checked)}
                                 aria-label="Toggle bot"
                               />
                               <span className="text-xs">{customer.botEnabled ? 'On' : 'Off'}</span>
@@ -224,13 +193,19 @@ const Customers = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => toast.info(`View ${customer.name}'s profile`)}>
+                                <DropdownMenuItem onClick={() => {
+                                  toast.info(`View ${customer.name}'s profile`)
+                                  window.open(`https://instagram.com/${customer.username}`, '_blank')
+                                }}>
                                   View Profile
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => toast.info(`View ${customer.name}'s conversations`)}>
                                   View Conversations
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive">
+                                <DropdownMenuItem 
+                                  className="text-destructive"
+                                  onClick={() => handleDeleteCustomer(customer.userId)}
+                                >
                                   Delete
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -250,13 +225,13 @@ const Customers = () => {
               </div>
             </TabsContent>
             <TabsContent value="active" className="m-0">
-              <div className="p-4 text-center text-muted-foreground">
-                Active customers would appear here
+              <div className="p-4 text-center text-muted-foreground text-sm">
+                Showing active customers would appear here
               </div>
             </TabsContent>
             <TabsContent value="inactive" className="m-0">
-              <div className="p-4 text-center text-muted-foreground">
-                Inactive customers would appear here
+              <div className="p-4 text-center text-muted-foreground text-sm">
+                Showing inactive customers would appear here
               </div>
             </TabsContent>
           </Tabs>

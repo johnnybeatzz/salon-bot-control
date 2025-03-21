@@ -1,15 +1,21 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import LoginForm from '../components/auth/LoginForm';
 
 const Login = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token'); // or sessionStorage depending on where you store it
+    if (token) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-salon-50 to-salon-100 p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-salon-800">Salon Bot</h1>
-          <p className="text-salon-600 mt-2">AI Customer Support Control Panel</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-background dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-800 p-4">
+      <div className="w-full flex flex-col items-center">
+        
         <LoginForm />
       </div>
     </div>
