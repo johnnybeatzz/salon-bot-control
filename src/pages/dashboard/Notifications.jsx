@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,103 +8,71 @@ import { Bell, MessageCircle, Calendar, AlertTriangle, CheckCircle, Info } from 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { fetchNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "@/lib/api";
+import { BlinkBlur } from "react-loading-indicators"
 
-// Mock data
-const mockNotifications = [
-  {
-    id: 1,
-    type: "message",
-    title: "New unread conversation",
-    description: "Jessica Smith sent a new message about hair coloring services",
-    time: "10 minutes ago",
-    read: false,
-    icon: MessageCircle,
-    color: "bg-salon-100 text-salon-700",
-  },
-  {
-    id: 2,
-    type: "appointment",
-    title: "Appointment Request",
-    description: "Michael Johnson requested an appointment for next Tuesday",
-    time: "32 minutes ago",
-    read: false,
-    icon: Calendar,
-    color: "bg-indigo-100 text-indigo-700",
-  },
-  {
-    id: 3,
-    type: "alert",
-    title: "Bot Connection Issue",
-    description: "The Instagram API connection encountered an error and needs attention",
-    time: "45 minutes ago",
-    read: false,
-    icon: AlertTriangle,
-    color: "bg-amber-100 text-amber-700",
-  },
-  {
-    id: 4,
-    type: "message",
-    title: "New conversation",
-    description: "Emma Davis asked about product recommendations for frizzy hair",
-    time: "1 hour ago",
-    read: true,
-    icon: MessageCircle,
-    color: "bg-salon-100 text-salon-700",
-  },
-  {
-    id: 5,
-    type: "message",
-    title: "New conversation",
-    description: "Alex Rodriguez asked about bridal packages for a wedding party",
-    time: "2 hours ago",
-    read: true,
-    icon: MessageCircle,
-    color: "bg-salon-100 text-salon-700",
-  },
-  {
-    id: 6,
-    type: "system",
-    title: "System Update",
-    description: "The salon bot was updated with new features for appointment handling",
-    time: "3 hours ago",
-    read: true,
-    icon: Info,
-    color: "bg-blue-100 text-blue-700",
-  },
-  {
-    id: 7,
-    type: "success",
-    title: "Customer Satisfaction",
-    description: "Olivia Wilson rated her conversation with the bot 5 stars",
-    time: "Yesterday",
-    read: true,
-    icon: CheckCircle,
-    color: "bg-emerald-100 text-emerald-700",
-  }
-];
 
 const Notifications = () => {
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    loadNotifications();
+  }, []);
+
+  const loadNotifications = async () => {
+    try {
+      const data = await fetchNotifications();
+      setNotifications(data);
+    } catch (error) {
+      toast.error("Failed to load notifications");
+      console.error("Error loading notifications:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const unreadCount = notifications.filter(notification => !notification.read).length;
   
-  const markAsRead = (id) => {
-    setNotifications(notifications.map(notification => 
-      notification.id === id ? { ...notification, read: true } : notification
-    ));
-    
-    toast.success("Notification marked as read");
+  const handleMarkAsRead = async (id) => {
+    try {
+      await markNotificationAsRead(id);
+      setNotifications(notifications.map(notification => 
+        notification.id === id ? { ...notification, read: true } : notification
+      ));
+      toast.success("Notification marked as read");
+    } catch (error) {
+      toast.error("Failed to mark notification as read");
+      console.error("Error marking notification as read:", error);
+    }
   };
   
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(notification => ({ ...notification, read: true })));
-    toast.success("All notifications marked as read");
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications(notifications.map(notification => ({ ...notification, read: true })));
+      toast.success("All notifications marked as read");
+    } catch (error) {
+      toast.error("Failed to mark all notifications as read");
+      console.error("Error marking all notifications as read:", error);
+    }
   };
   
   const clearAllNotifications = () => {
     setNotifications([]);
     toast.success("All notifications cleared");
   };
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <BlinkBlur color='#2f4ff5' size="medium" text="" textColor="" />
+          <p className="text-muted-foreground">Loading Notifications...</p>
+        </div>
+    </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -126,7 +93,7 @@ const Notifications = () => {
               )}
             </div>
             <div className="flex space-x-2">
-              <Button variant="outline" size="sm" onClick={markAllAsRead} disabled={unreadCount === 0}>
+              <Button variant="outline" size="sm" onClick={handleMarkAllAsRead} disabled={unreadCount === 0}>
                 Mark all as read
               </Button>
               <Button variant="outline" size="sm" onClick={clearAllNotifications} disabled={notifications.length === 0}>
@@ -171,7 +138,7 @@ const Notifications = () => {
                                 variant="link" 
                                 size="sm" 
                                 className="p-0 h-auto text-salon-600" 
-                                onClick={() => markAsRead(notification.id)}
+                                onClick={() => handleMarkAsRead(notification.id)}
                               >
                                 Mark as read
                               </Button>

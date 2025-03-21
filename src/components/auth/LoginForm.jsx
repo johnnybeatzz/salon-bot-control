@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../../lib/api';
+import { toast } from "sonner";
 
 const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
     rememberMe: false
   });
@@ -18,21 +20,21 @@ const LoginForm = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulated login
-    setTimeout(() => {
-      if (formData.email && formData.password) {
-        console.log("Login successful!");
-        // Uncomment the next line when you have routing set up
-        // navigate('/dashboard');
-      } else {
-        console.error("Please enter both email and password");
-      }
+    try {
+      const response = await loginUser(formData.username, formData.password);
+      // The token is already saved in localStorage by the function
+      // You can navigate to dashboard or handle the response as needed
+      navigate('/dashboard');
+    } catch (error) {
+      toast.error('Login failed: ' + (error.message || 'Invalid credentials'));
+      console.error('Login failed:', error);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   // Inline styles for consistent appearance
@@ -102,16 +104,16 @@ const LoginForm = () => {
       
       <form onSubmit={handleSubmit}>
         <div>
-          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem", color: "#e2e8f0" }} htmlFor="email">
-            Email
+          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem", color: "#e2e8f0" }} htmlFor="username">
+            Username
           </label>
           <input
             style={inputStyle}
-            id="email"
-            name="email"
-            type="email"
-            placeholder="example@salon.com"
-            value={formData.email}
+            id="username"
+            name="username"
+            type="text"
+            placeholder="Enter your username"
+            value={formData.username}
             onChange={handleChange}
             required
           />
@@ -129,6 +131,7 @@ const LoginForm = () => {
             id="password"
             name="password"
             type="password"
+            placeholder="Enter your password"
             value={formData.password}
             onChange={handleChange}
             required
