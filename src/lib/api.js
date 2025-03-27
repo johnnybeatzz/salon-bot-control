@@ -2,7 +2,7 @@
 // This simulates API calls to a backend server/database
 
 // Base API URL - replace with your actual API endpoint when ready
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://insta-agent-production.up.railway.app';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://instagram-agent.fly.dev';
 // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:5000';
 
 // Helper function for making API requests
