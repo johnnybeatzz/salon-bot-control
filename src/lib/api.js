@@ -316,12 +316,25 @@ export async function fetchNotifications() {
 }
 
 export async function markNotificationAsRead(notificationId) {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ success: true, message: `Notification ${notificationId} marked as read` });
-    }, 500);
-  });
+  try {
+    // Use fetchAPI to send a POST request to the backend
+    const response = await fetchAPI('/read_notification', {
+      method: 'POST',
+      body: JSON.stringify({ notification_id: notificationId }), // Send the notification ID
+    });
+    console.log('Mark as read response:', response); // Optional: Log the response
+    return response; // Return the backend response
+  } catch (error) {
+    console.error('Failed to mark notification as read:', error);
+    throw error; // Re-throw the error to be caught by the calling component
+  }
+
+  // --- REMOVED SIMULATED API CALL ---
+  // return new Promise((resolve) => {
+  //   setTimeout(() => {
+  //     resolve({ success: true, message: `Notification ${notificationId} marked as read` });
+  //   }, 500);
+  // });
 }
 
 export async function markAllNotificationsAsRead() {

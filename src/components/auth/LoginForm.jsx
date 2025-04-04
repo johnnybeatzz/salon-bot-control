@@ -99,7 +99,7 @@ const LoginForm = () => {
 
   return (
     <div style={formContainerStyle}>
-      <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", textAlign: "center", marginBottom: "1.5rem", color: "white" }}>Salon Bot Admin</h2>
+      <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", textAlign: "center", marginBottom: "1.5rem", color: "white" }}>MoonSide AI Admin</h2>
       <p style={{ color: "#94a3b8", textAlign: "center", marginBottom: "1.5rem" }}>Enter your credentials to access the dashboard</p>
       
       <form onSubmit={handleSubmit}>
