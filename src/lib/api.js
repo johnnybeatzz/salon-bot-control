@@ -273,33 +273,46 @@ export async function sendMessage(conversationId, message) {
 
 // Notifications API functions
 export async function fetchNotifications() {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        {
-          id: 1,
-          type: "message",
-          title: "New unread conversation",
-          description: "Jessica Smith sent a new message about hair coloring services",
-          time: "10 minutes ago",
-          read: false,
-          icon: "MessageCircle",
-          color: "bg-salon-100 text-salon-700",
-        },
-        {
-          id: 2,
-          type: "appointment",
-          title: "Appointment Request",
-          description: "Michael Johnson requested an appointment for next Tuesday",
-          time: "32 minutes ago",
-          read: false,
-          icon: "Calendar",
-          color: "bg-indigo-100 text-indigo-700",
+  try {
+    // Use fetchAPI helper for the GET request
+    const response = await fetchAPI('/get_notifications', { method: 'GET' });
+
+    // Check if the response has the 'notifications' key and it's an array
+    if (response && Array.isArray(response.notifications)) {
+      // Map the notifications array
+      return response.notifications.map(notification => {
+        // Clone details to avoid modifying the original if needed elsewhere,
+        // or directly modify if not needed. Using direct modification here for simplicity.
+        const details = notification.details || {};
+        // Remove the 'Note' property from the details object if it exists
+        if (details.hasOwnProperty('Note')) {
+          delete details['Note'];
         }
-      ]);
-    }, 1000);
-  });
+
+        return {
+          id: notification._id, // Use _id directly
+          user_id: notification.user_id,
+          owner_id: notification.owner_id,
+          note: notification.note, // Use the top-level note for list display
+          read: notification.viewed ?? false, // Use viewed, default to false
+          // Ensure created_at is in a format Date can parse, or adjust formatTimeAgo
+          created_at: notification.created_at?.replace(' ', 'T') + 'Z', // Attempt to convert to ISO-like format
+          type: notification.details?.Type || 'unknown', // Extract type from details, provide default
+          details: details, // Assign the modified details object
+          name: notification.name,
+          username: notification.username
+        };
+      });
+    } else {
+      console.warn("API response did not contain a 'notifications' array:", response);
+      return []; // Return empty array if the structure is unexpected
+    }
+  } catch (error) {
+    console.error('Failed to fetch notifications:', error);
+    // Optionally re-throw or return an empty array/error state
+    // throw error;
+    return []; // Return empty array on error to prevent UI crash
+  }
 }
 
 export async function markNotificationAsRead(notificationId) {
