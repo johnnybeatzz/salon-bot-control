@@ -281,24 +281,20 @@ export async function fetchNotifications() {
     if (response && Array.isArray(response.notifications)) {
       // Map the notifications array
       return response.notifications.map(notification => {
-        // Clone details to avoid modifying the original if needed elsewhere,
-        // or directly modify if not needed. Using direct modification here for simplicity.
-        const details = notification.details || {};
-        // Remove the 'Note' property from the details object if it exists
-        if (details.hasOwnProperty('Note')) {
-          delete details['Note'];
-        }
+        // Extract the nested details and the type
+        const actualDetails = notification.details?.details || {};
+        const notificationType = notification.details?.type || 'unknown'; // Get type from details.type
 
         return {
           id: notification._id, // Use _id directly
           user_id: notification.user_id,
           owner_id: notification.owner_id,
-          note: notification.note, // Use the top-level note for list display
+          note: notification.note, // Use the top-level note for list display/main message
           read: notification.viewed ?? false, // Use viewed, default to false
           // Ensure created_at is in a format Date can parse, or adjust formatTimeAgo
           created_at: notification.created_at?.replace(' ', 'T') + 'Z', // Attempt to convert to ISO-like format
-          type: notification.details?.Type || 'unknown', // Extract type from details, provide default
-          details: details, // Assign the modified details object
+          type: notificationType, // Assign the extracted type
+          details: actualDetails, // Assign the nested details object
           name: notification.name,
           username: notification.username
         };
