@@ -1,46 +1,32 @@
-# syntax = docker/dockerfile:1
+# Use Node.js as the base image
+FROM node:18-alpine as builder
 
-# Adjust BUN_VERSION as desired
-ARG BUN_VERSION=1.1.24
-FROM oven/bun:${BUN_VERSION}-slim AS base
-
-LABEL fly_launch_runtime="Bun"
-
-# Bun app lives here
+# Set the working directory
 WORKDIR /app
 
-# Set production environment
-ENV NODE_ENV="production"
+# Copy package.json and package-lock.json
+COPY package.json package-lock.json ./
 
+# Install dependencies
+RUN npm install
 
-# Throw-away build stage to reduce size of final image
-FROM base AS build
-
-# Install packages needed to build node modules
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential pkg-config python-is-python3
-
-# Install node modules
-COPY bun.lockb package-lock.json package.json ./
-RUN bun install
-
-# Copy application code
+# Copy the rest of the application code
 COPY . .
 
-# Build application
-RUN bun run build
+# Build the application
+RUN npm run build
 
-# Remove development dependencies
-RUN rm -rf node_modules && \
-    bun install --ci
+# Use a lightweight web server to serve the app
+FROM nginx:alpine
 
+# Copy the built app from the builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Final stage for app image
-FROM nginx
+# Add Nginx configuration for SPA routing
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built application
-COPY --from=build /app/dist /usr/share/nginx/html
+# Expose port 80
+EXPOSE 80
 
-# Start the server by default, this can be overwritten at runtime
-EXPOSE 3000
-CMD [ "/usr/sbin/nginx", "-g", "daemon off;" ]
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
