@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BlinkBlur } from "react-loading-indicators"
-import { get_business_data, save_business_data } from '@/lib/api';
+import { get_business_data, save_business_data, updateAutoReplyStatus } from '@/lib/api';
 
 const Settings = () => {
   const [generalSettings, setGeneralSettings] = useState({
@@ -22,7 +22,6 @@ const Settings = () => {
   });
   
   const [automationSettings, setAutomationSettings] = useState({
-    autoReply: true,
     autoReplyDelay: "10",
     autoFollowUp: true,
     followUpDelay: "12",
@@ -43,8 +42,14 @@ const Settings = () => {
     const fetchBusinessData = async () => {
       setLoading(true);
       try {
-        const data = await get_business_data();
-        setBusinessData(data);
+        const business = await get_business_data();
+        // Set the main business data (excluding the 'active' flag)
+        setBusinessData(business.data); 
+        // Initialize autoReply directly from the top-level 'active' property
+        setAutomationSettings(prev => ({
+          ...prev,
+          autoReply: business?.active ?? false // Correctly read business.active
+        }));
       } catch (error) {
         toast.error('Failed to load business data');
         console.error(error);
@@ -144,16 +149,35 @@ const Settings = () => {
     });
   };
   
-  const handleSwitchChange = (checked, name) => {
-    setAutomationSettings({
-      ...automationSettings,
-      [name]: checked
-    });
-  };
-  
-  const handleSave = (type) => {
-    // In a real app, this would be an API call to save your settings
-    toast.success(`${type} settings saved successfully`);
+  const handleSwitchChange = async (checked, name) => {
+    if (name === "autoReply") {
+      try {
+        setLoading(true);
+        await updateAutoReplyStatus(checked);
+        setAutomationSettings({
+          ...automationSettings,
+          [name]: checked
+        });
+        // Update businessData state locally as well for consistency
+        setBusinessData(prev => ({ ...prev, active: checked }));
+        toast.success(`Automatic replies ${checked ? 'enabled' : 'disabled'}`);
+      } catch (error) {
+        toast.error("Failed to update automatic replies status");
+        // Optionally revert the switch state on error
+        setAutomationSettings({
+          ...automationSettings,
+          [name]: !checked // Revert if API call fails
+        });
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Handle other switches normally
+      setAutomationSettings({
+        ...automationSettings,
+        [name]: checked
+      });
+    }
   };
   
   // Function to handle changes to business data fields
@@ -420,7 +444,9 @@ const Settings = () => {
   const handleSaveBusinessData = async () => {
     try {
       setLoading(true);
-      await save_business_data(businessData);
+      // Ensure the 'active' status reflects the switch state before saving
+      const dataToSave = { ...businessData, active: automationSettings.autoReply };
+      await save_business_data(dataToSave);
       toast.success("Business data saved successfully");
     } catch (error) {
       toast.error("Failed to save business data");
@@ -467,7 +493,7 @@ const Settings = () => {
                 <Switch 
                   id="autoReply" 
                   name="autoReply" 
-                  checked={automationSettings.autoReply} 
+                  checked={automationSettings.autoReply ?? false} 
                   onCheckedChange={(checked) => handleSwitchChange(checked, "autoReply")}
                 />
               </div>
@@ -528,9 +554,6 @@ const Settings = () => {
                 />
               </div>
             </CardContent>
-            <CardFooter>
-              <Button className="bg-salon-600 hover:bg-salon-700" onClick={() => handleSave("Automation")}>Save Changes</Button>
-            </CardFooter>
           </Card>
         </TabsContent>
         

@@ -201,6 +201,20 @@ export async function updateCustomerBotStatus(customerId, enabled) {
   });
 }
 
+export async function updateAutoReplyStatus(enabled) {
+  try {
+    const response = await fetchAPI('/turn', {
+      method: 'POST',
+      body: JSON.stringify({ "is_enabled": enabled }),
+    });
+    console.log('Auto-reply status update response:', response);
+    return response;
+  } catch (error) {
+    console.error('Failed to update auto-reply status:', error);
+    throw error;
+  }
+}
+
 export async function deleteCustomer(customerId) {
   const owner_id = localStorage.getItem('_id')
   try {
@@ -377,7 +391,7 @@ export async function get_business_data() {
         'Authorization': `Bearer ${token}`
       }
     });
-    return response.data;
+    return response;
   } catch (error) {
     console.error('Failed to fetch business data:', error);
     throw error;
